@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Hiring Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 20px;
+            padding: 20px;
+        }
+        h1 {
+            color: red;
+            text-align: center;
+        }
+        form {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            background: #ffffff;
+            max-width: 500px;
+            margin: auto;
+        }
+        input {
+            display: block;
+            width: calc(100% - 20px);
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100px;
+            padding: 10px;
+            margin: 10px 10px 0 0;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button[type="submit"] {
+            color: white;
+            background-color: blue;
+            border: none;
+            border-radius: 4px;
+        }
+        button[type="submit"]:hover {
+            background-color: darkblue;
+        }
+        button[type="button"] {
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button[type="button"]:hover {
+            background-color: gray;
+        }
+        button[type="button"]:nth-of-type(2) {
+            background-color: green;
+        }
+        button[type="button"]:nth-of-type(2):hover {
+            background-color: darkgreen;
+        }
+    </style>
+</head>
+<body>
+    <h1>Staff Hiring Form</h1>
+    <form id="hireStaffForm">
+        <input type="text" id="staffNo" placeholder="Staff No" required />
+        <input type="text" id="firstName" placeholder="First Name" required />
+        <input type="text" id="lastName" placeholder="Last Name" required />
+        <input type="text" id="position" placeholder="Position" required />
+        <input type="text" id="sex" placeholder="Sex" required />
+        <input type="date" id="dob" required />
+        <input type="number" id="salary" placeholder="Salary" required />
+        <input type="text" id="branchNo" placeholder="Branch No" required />
+        <input type="tel" id="telephone" placeholder="Telephone" required />
+        <input type="tel" id="mobile" placeholder="Mobile" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <button type="submit">Hire</button>
+        <button type="button" onclick="alert('Form Canceled')">Cancel</button>
+        <button type="button" onclick="showEmployeeList()">Show Employee List</button> 
+    </form>
+
+    <script src="main.js"></script>
+
+    <script>
+        
+        function showEmployeeList() {
+            window.location.href = "staffmanagment.html";  
+        }
+    </script>
+    
+</body>
+</html>

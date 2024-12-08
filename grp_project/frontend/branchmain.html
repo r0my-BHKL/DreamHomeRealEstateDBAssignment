@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Main Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+
+        h1, h2 {
+            color: #4679BD;
+        }
+
+        form {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        form input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        form button {
+            padding: 10px 20px;
+            background-color: #4679BD;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #35568E;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+        }
+
+        .action-buttons button {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Branch Main Menu</h1>
+
+    <!-- Identify Branch Address -->
+    <h2>Identify Branch Address</h2>
+    <form id="identifyBranchForm">
+        <label for="branchNo">Enter Branch Number:</label>
+        <input type="text" id="branchNo" placeholder="e.g., B001" required>
+        <button type="button" onclick="getBranchAddress()">Find Address</button>
+    </form>
+    <p id="branchAddress"></p>
+
+    <!-- Update Branch Form -->
+<h2>Update Branch Details</h2>
+<form id="updateBranchForm">
+    <label for="updateBranchNo">Branch Number:</label>
+    <input type="text" id="updateBranchNo" placeholder="Enter Branch Number" required>
+
+    <label for="updateStreet">Street:</label>
+    <input type="text" id="updateStreet" placeholder="Enter Street" required>
+
+    <label for="updateCity">City:</label>
+    <input type="text" id="updateCity" placeholder="Enter City" required>
+
+    <label for="updatePostcode">Postcode:</label>
+    <input type="text" id="updatePostcode" placeholder="Enter Postcode" required>
+
+    <button type="button" onclick="updateBranchDetails()">Update Branch</button>
+</form>
+
+    <!-- Create New Branch -->
+    <h2>Create New Branch</h2>
+    <form id="createBranchForm">
+        <label for="newBranchNo">Branch Number:</label>
+        <input type="text" id="newBranchNo" placeholder="e.g., B005" required>
+
+        <label for="newStreet">Street:</label>
+        <input type="text" id="newStreet" placeholder="e.g., 123 Main St" required>
+
+        <label for="newCity">City:</label>
+        <input type="text" id="newCity" placeholder="e.g., Toronto" required>
+
+        <label for="newPostcode">Postcode:</label>
+        <input type="text" id="newPostcode" placeholder="e.g., M1A 1A1" required>
+
+        <button type="button" onclick="createBranch()">Create Branch</button>
+    </form>
+
+    <script>
+        // Identify Branch Address
+        function getBranchAddress() {
+            const branchNo = document.getElementById('branchNo').value;
+            fetch(`http://localhost:3000/get-branch-address/${branchNo}`)
+                .then(response => response.json())
+                .then(data => {
+                    const addressElement = document.getElementById('branchAddress');
+                    addressElement.textContent = data.address || data.message;
+                    addressElement.style.color = data.address ? "green" : "red";
+                })
+                .catch(error => console.error('Error fetching branch address:', error));
+        }
+
+        // Load Branch Details
+        function loadBranches() {
+            fetch('http://localhost:3000/list-branches') // Implement this route in your backend if not already done
+                .then(response => response.json())
+                .then(branches => {
+                    const tbody = document.getElementById('branchTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    branches.forEach(branch => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${branch.branchno}</td>
+                            <td><input type="text" value="${branch.street}" data-branchno="${branch.branchno}" data-field="street"></td>
+                            <td><input type="text" value="${branch.city}" data-branchno="${branch.branchno}" data-field="city"></td>
+                            <td class="action-buttons">
+                                <button onclick="updateBranch('${branch.branchno}')">Update</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error loading branches:', error));
+        }
+
+        // Update Branch
+        function updateBranchDetails() {
+        const branchno = document.getElementById('updateBranchNo').value;
+        const street = document.getElementById('updateStreet').value;
+        const city = document.getElementById('updateCity').value;
+        const postcode = document.getElementById('updatePostcode').value;
+
+        fetch('http://localhost:3000/update-branch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                branchno,
+                street,
+                city,
+                postcode
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Branch updated successfully!');
+        })
+        .catch(error => {
+            console.error('Error updating branch:', error);
+            alert('Error updating branch');
+        });
+        }
+
+        // Create New Branch
+        function createBranch() {
+            const branchNo = document.getElementById('newBranchNo').value;
+            const street = document.getElementById('newStreet').value;
+            const city = document.getElementById('newCity').value;
+            const postcode = document.getElementById('newPostcode').value;
+
+            fetch('http://localhost:3000/create-branch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ branchno: branchNo, street, city, postcode })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    loadBranches(); // Reload branch data
+                })
+                .catch(error => console.error('Error creating branch:', error));
+        }
+
+        // Load branch data on page load
+        window.onload = loadBranches;
+    </script>
+</body>
+</html>
