@@ -1,7 +1,7 @@
 const express = require('express');
 const oracledb = require('oracledb');
 const app = express();
-const port = 4000;
+const port = 3000;
 
 const cors = require('cors');
 app.use(cors());
@@ -96,28 +96,47 @@ app.post('/hire-staff', async (req, res) => {
 app.post('/register-client', async (req, res) => {
     const { clientno, fname, lname, telno, street, city, email, preftype, maxrent } = req.body;
 
+    // Validate required fields
     if (!clientno || !fname || !lname || !telno || !street || !city || !email || !preftype || !maxrent) {
         return res.status(400).send({ message: "All fields are required." });
     }
 
-    const connection = await oracledb.getConnection();
+    let connection;
 
     try {
+        // Establish a database connection
+        connection = await oracledb.getConnection();
+
+        // Execute the stored procedure
         const result = await connection.execute(
-            `BEGIN
-                client_register_sp(:clientno, :fname, :lname, :telno, :street, :city, :email, :preftype, :maxrent);
+            `BEGIN 
+                client_register_sp(:clientno, :fname, :lname, :telno, :street, :city, :email, :preftype, :maxrent); 
             END;`,
             { clientno, fname, lname, telno, street, city, email, preftype, maxrent },
             { autoCommit: true }
         );
 
+        // Send a success response
         res.send({ message: 'Client registered successfully', data: result });
 
     } catch (error) {
         console.error('Error registering client:', error);
-        res.status(500).send({ message: 'Error registering client', error: error.message, stack: error.stack });
+
+        // Handle error responses
+        res.status(500).send({
+            message: 'Error registering client',
+            error: error.message,
+            stack: error.stack
+        });
     } finally {
-        await connection.close();
+        // Ensure the database connection is closed
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (closeError) {
+                console.error('Error closing connection:', closeError);
+            }
+        }
     }
 });
 
@@ -238,167 +257,7 @@ app.post('/update-staff', async (req, res) => {
         }
     }
 });
-// Get Branch Address
-app.get('/get-branch-address/:branchno', async (req, res) => {
-    const { branchno } = req.params;
 
-    if (!branchno) {
-        return res.status(400).send({ message: "Branch number is required." });
-    }
-
-    let connection;
-    try {
-        connection = await oracledb.getConnection();
-        const result = await connection.execute(
-            `SELECT street || ', ' || city AS address FROM dh_branch WHERE branchno = :branchno`,
-            { branchno }
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).send({ message: "Branch not found." });
-        }
-
-        res.send({ address: result.rows[0][0] });
-    } catch (error) {
-        console.error("Error fetching branch address:", error);
-        res.status(500).send({ message: "Error fetching branch address.", error: error.message });
-    } finally {
-        if (connection) await connection.close();
-    }
-});
-
-// Update Branch Details
-app.post('/get-branch-details', async (req, res) => {
-    const { branchno } = req.body;
-
-    if (!branchno) {
-        return res.status(400).send({ message: "Branch number is required." });
-    }
-
-    let connection;
-    try {
-        connection = await oracledb.getConnection();
-        const result = await connection.execute(
-            `SELECT street || ', ' || city AS address FROM dh_branch WHERE branchno = :branchno`,
-            { branchno }
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).send({ message: "Branch not found." });
-        }
-
-        res.send({ address: result.rows[0][0] });
-    } catch (error) {
-        console.error("Error fetching branch details:", error);
-        res.status(500).send({ message: "Error fetching branch details.", error: error.message });
-    } finally {
-        if (connection) await connection.close();
-    }
-});
-
-
-// Create New Branch
-app.post('/create-branch', async (req, res) => {
-    const { branchno, street, city, postcode } = req.body;
-
-    if (!branchno || !street || !city || !postcode) {
-        return res.status(400).send({ message: "All fields are required." });
-    }
-
-    let connection;
-    try {
-        connection = await oracledb.getConnection();
-        const result = await connection.execute(
-            `BEGIN
-                new_branch(:branchno, :street, :city, :postcode);
-             END;`,
-            { branchno, street, city, postcode },
-            { autoCommit: true }
-        );
-
-        res.send({ message: "Branch created successfully." });
-    } catch (error) {
-        console.error("Error creating branch:", error);
-        res.status(500).send({ message: "Error creating branch.", error: error.message });
-    } finally {
-        if (connection) await connection.close();
-    }
-});
-
-app.post('/register-client', async (req, res) => {
-    const { clientno, fname, lname, telno, street, city, email, preftype, maxrent } = req.body;
-
-    // Validate required fields
-    if (!clientno || !fname || !lname || !telno || !street || !city || !email || !preftype || !maxrent) {
-        return res.status(400).send({ message: "All fields are required." });
-    }
-
-    let connection;
-
-    try {
-        // Establish a database connection
-        connection = await oracledb.getConnection();
-
-        // Execute the stored procedure
-        const result = await connection.execute(
-            `BEGIN 
-                client_register_sp(:clientno, :fname, :lname, :telno, :street, :city, :email, :preftype, :maxrent); 
-            END;`,
-            { clientno, fname, lname, telno, street, city, email, preftype, maxrent },
-            { autoCommit: true }
-        );
-
-        // Send a success response
-        res.send({ message: 'Client registered successfully', data: result });
-
-    } catch (error) {
-        console.error('Error registering client:', error);
-
-        // Handle error responses
-        res.status(500).send({
-            message: 'Error registering client',
-            error: error.message,
-            stack: error.stack
-        });
-    } finally {
-        // Ensure the database connection is closed
-        if (connection) {
-            try {
-                await connection.close();
-            } catch (closeError) {
-                console.error('Error closing connection:', closeError);
-            }
-        }
-    }
-});
-
-app.post('/delete-client', async (req, res) => {
-    const { clientno } = req.body;
-
-    if (!clientno) {
-        return res.status(400).send({ message: "Client number is required." });
-    }
-
-    const connection = await oracledb.getConnection();
-
-    try {
-        const result = await connection.execute(
-            `BEGIN
-                delete_client_sp(:clientno);
-            END;`,
-            { clientno },
-            { autoCommit: true }
-        );
-
-        res.send({ message: 'Client deleted successfully', data: result });
-
-    } catch (error) {
-        console.error('Error deleting client:', error);
-        res.status(500).send({ message: 'Error deleting client', error: error.message, stack: error.stack });
-    } finally {
-        await connection.close();
-    }
-});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

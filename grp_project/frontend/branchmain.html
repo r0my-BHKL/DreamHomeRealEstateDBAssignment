@@ -22,6 +22,7 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -61,16 +62,24 @@
         }
 
         form button {
-            padding: 10px 20px;
             background-color: #4679BD;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
         }
 
         form button:hover {
             background-color: #35568E;
+        }
+
+        #branchAddress {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
         }
     </style>
 </head>
@@ -118,21 +127,25 @@
 
         <button type="button" onclick="createBranch()">Create Branch</button>
     </form>
-
+    <h2>Manage Branch Data</h2>
+    <button onclick="window.location.href='branchtable.html'">Show Tables</button>
     <script>
         // Identify Branch Address
         function getBranchAddress() {
             const branchNo = document.getElementById('branchNo').value.trim();
+            if (!branchNo) {
+                updateMessage('Please enter a valid branch number.', 'error');
+                return;
+            }
+
             fetch(`http://localhost:4000/get-branch-address/${branchNo}`)
                 .then(response => response.json())
                 .then(data => {
-                    const addressElement = document.getElementById('branchAddress');
-                    addressElement.textContent = data.address || data.message;
-                    addressElement.style.color = data.address ? "green" : "red";
+                    updateMessage(data.address || data.message, data.address ? 'success' : 'error');
                 })
                 .catch(error => {
                     console.error('Error fetching branch address:', error);
-                    alert('Failed to find branch address.');
+                    updateMessage('Failed to find branch address.', 'error');
                 });
         }
 
@@ -143,7 +156,7 @@
                 .then(data => {
                     const table = document.getElementById('branchDetailsTable');
                     const tbody = table.querySelector('tbody');
-                    
+
                     // Clear previous data
                     tbody.innerHTML = '';
 
@@ -175,6 +188,11 @@
             const city = document.getElementById('newCity').value.trim();
             const postcode = document.getElementById('newPostcode').value.trim();
 
+            if (!branchNo || !street || !city || !postcode) {
+                alert('All fields are required!');
+                return;
+            }
+
             fetch('http://localhost:4000/create-branch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -188,6 +206,13 @@
                     console.error('Error creating branch:', error);
                     alert('Failed to create branch.');
                 });
+        }
+
+        // Update message display
+        function updateMessage(message, type) {
+            const messageElement = document.getElementById('branchAddress');
+            messageElement.textContent = message;
+            messageElement.className = type;
         }
     </script>
 </body>

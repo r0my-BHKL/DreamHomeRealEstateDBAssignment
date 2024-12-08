@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Branch Management</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .update-button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>branch Management</h1>
+    <table id="branchTable">
+        <thead>
+            <tr>
+                <th>branch No</th>
+                <th>First Name</th>
+                <th>branchno</th>
+                <th>street</th>
+                <th>city</th>
+                <th>postcode</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- branch records will be dynamically inserted here -->
+        </tbody>
+    </table>
+    <button class="update-button" onclick="updateAllbranch()">Update All Changes</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Document loaded, fetching branch list...');
+            fetch('http://localhost:4000/list-branch')
+                .then(response => {
+                    console.log('Received response:', response);
+                    return response.json();
+                })
+                .then(branchList => {
+                    console.log('branch list:', branchList);
+                    if (!Array.isArray(branchList)) {
+                        console.error("Expected an array but got:", branchList);
+                        throw new Error("Response is not an array");
+                    }
+                    const branchTableBody = document.getElementById('branchTable').querySelector('tbody');
+                    branchList.forEach(branch => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="text" value="${branch.branchno}" data-branchno="${branch.branchno}" data-field="branchno"></td>
+                            <td><input type="text" value="${branch.street}" data-branchno="${branch.branchno}" data-field="street"></td>
+                            <td><input type="text" value="${branch.city}" data-branchno="${branch.branchno}" data-field="city"></td>
+                            <td><input type="text" value="${branch.postcode}" data-branchno="${branch.branchno}" data-field="postcode"></td>
+                            <td><button onclick="savebranch(${branch.branchno})">Save</button></td>
+                        `;
+                        branchTableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching branch list:', error));
+        });
+
+        function savebranch(branchno) {
+            const branchnoInput = document.querySelector(`input[data-branchno="${branchno}"][data-field="branchno"]`).value;
+            const streetInput = document.querySelector(`input[data-branchno="${branchno}"][data-field="street"]`).value;
+            const postcodeInput = document.querySelector(`input[data-branchno="${branchno}"][data-field="postcode"]`).value;
+
+            if (isNaN(branchnoInput)) {
+                alert("Please enter a valid branchno.");
+                return;
+            }
+            if (isNaN(streetInput)) {
+                alert("Please enter a valid street number.");
+                return;
+            }
+
+            fetch('http://localhost:4000/update-branch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    branchno,
+                    branchno: branchnoInput,
+                    street: streetInput,
+                    postcode: postcodeInput
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+                alert(result.message);
+            })
+            .catch(error => console.error('Error updating branch:', error));
+        }
+
+        // Define updateAllbranch function
+        function updateAllbranch() {
+    const rows = document.querySelectorAll('#branchTable tbody tr');
+    const updatePromises = []; // Collect all update promises
+
+    rows.forEach(row => {
+        const branchno = row.querySelector('td:first-child').textContent;
+        const branchnoInput = row.querySelector(`input[data-branchno="${branchno}"][data-field="branchno"]`).value;
+        const streetInput = row.querySelector(`input[data-branchno="${branchno}"][data-field="street"]`).value;
+        const postcodeInput = row.querySelector(`input[data-branchno="${branchno}"][data-field="postcode"]`).value;
+
+        if (isNaN(branchnoInput)) {
+            alert(`Invalid branchno for branch number ${branchno}. Skipping update.`);
+            return;
+        }
+        if (isNaN(streetInput)) {
+            alert(`Invalid street for branch number ${branchno}. Skipping update.`);
+            return;
+        }
+
+        // Add the fetch call as a promise to the array
+        const updatePromise = fetch('http://localhost:4000/update-branch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                branchno,
+                branchno: branchnoInput,
+                street: streetInput,
+                postcode: postcodeInput
+            })
+        }).then(response => response.json());
+
+        updatePromises.push(updatePromise);
+    });
+
+    // Wait for all updates to complete
+    Promise.all(updatePromises)
+        .then(results => {
+            // Summarize results
+            const successCount = results.filter(result => result.success).length;
+            const failureCount = results.length - successCount;
+
+            alert(`Update Complete: ${successCount} success, ${failureCount} failure(s).`);
+        })
+        .catch(error => {
+            console.error('Error updating multiple branch:', error);
+            alert('An error occurred while updating branch.');
+        });
+}
+
+    </script>
+</body>
+</html>
