@@ -1,7 +1,7 @@
 const express = require('express');
 const oracledb = require('oracledb');
 const app = express();
-const port = 3000;
+const port = 4000;
 
 const cors = require('cors');
 app.use(cors());
@@ -268,34 +268,34 @@ app.get('/get-branch-address/:branchno', async (req, res) => {
 });
 
 // Update Branch Details
-app.post('/update-branch', async (req, res) => {
-    const { branchno, street, city } = req.body;
+app.post('/get-branch-details', async (req, res) => {
+    const { branchno } = req.body;
 
-    if (!branchno || !street || !city) {
-        return res.status(400).send({ message: "Branch number, street, and city are required." });
+    if (!branchno) {
+        return res.status(400).send({ message: "Branch number is required." });
     }
 
     let connection;
     try {
         connection = await oracledb.getConnection();
         const result = await connection.execute(
-            `UPDATE dh_branch SET street = :street, city = :city WHERE branchno = :branchno`,
-            { branchno, street, city },
-            { autoCommit: true }
+            `SELECT street || ', ' || city AS address FROM dh_branch WHERE branchno = :branchno`,
+            { branchno }
         );
 
-        if (result.rowsAffected === 0) {
+        if (result.rows.length === 0) {
             return res.status(404).send({ message: "Branch not found." });
         }
 
-        res.send({ message: "Branch updated successfully." });
+        res.send({ address: result.rows[0][0] });
     } catch (error) {
-        console.error("Error updating branch:", error);
-        res.status(500).send({ message: "Error updating branch.", error: error.message });
+        console.error("Error fetching branch details:", error);
+        res.status(500).send({ message: "Error fetching branch details.", error: error.message });
     } finally {
         if (connection) await connection.close();
     }
 });
+
 
 // Create New Branch
 app.post('/create-branch', async (req, res) => {

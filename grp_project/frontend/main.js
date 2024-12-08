@@ -36,7 +36,7 @@ document.getElementById('hireStaffForm').addEventListener('submit', function(e) 
         return;
     }
 
-    fetch('http://localhost:3000/hire-staff', {
+    fetch('http://localhost:4000/hire-staff', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

@@ -55,7 +55,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('http://localhost:3000/list-staff')
+            fetch('http://localhost:4000/list-staff')
                 .then(response => response.json())
                 .then(staffList => {
                     const staffTableBody = document.getElementById('staffTable').querySelector('tbody');
@@ -86,7 +86,7 @@
             const phoneInput = document.querySelector(`input[data-staffno="${staffno}"][data-field="phone"]`).value;
             const emailInput = document.querySelector(`input[data-staffno="${staffno}"][data-field="email"]`).value;
 
-            fetch('http://localhost:3000/update-staff', {
+            fetch('http://localhost:4000/update-staff', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -56,7 +56,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Document loaded, fetching staff list...');
-            fetch('http://localhost:3000/list-staff')
+            fetch('http://localhost:4000/list-staff')
                 .then(response => {
                     console.log('Received response:', response);
                     return response.json();
@@ -104,7 +104,7 @@
                 return;
             }
 
-            fetch('http://localhost:3000/update-staff', {
+            fetch('http://localhost:4000/update-staff', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -145,7 +145,7 @@
         }
 
         // Add the fetch call as a promise to the array
-        const updatePromise = fetch('http://localhost:3000/update-staff', {
+        const updatePromise = fetch('http://localhost:4000/update-staff', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
